@@ -63,29 +63,70 @@ jobs:
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           # Manual trigger with file details
           node -e "
+            const { setupGoogleDrive } = require('./src/services/googleDrive');
+            const { setupGoogleSheets } = require('./src/services/googleSheets');
+            const { setupImageKit } = require('./src/services/imageKit');
             const { processVideoPipeline } = require('./src/processors/videoProcessor');
-            const broadcast = (data) => console.log(JSON.stringify(data));
             
-            processVideoPipeline(
-              '${{ github.event.inputs.file_id }}',
-              '${{ github.event.inputs.file_name }}',
-              broadcast
-            ).then(result => {
-              console.log('Processing completed:', result);
-              process.exit(0);
-            }).catch(error => {
-              console.error('Processing failed:', error);
-              process.exit(1);
-            });
+            async function initializeAndProcess() {
+              try {
+                // Initialize all services
+                await setupGoogleDrive();
+                console.log('✅ Google Drive service initialized');
+                
+                try {
+                  await setupGoogleSheets();
+                  console.log('✅ Google Sheets service initialized');
+                } catch (error) {
+                  console.log('⚠️ Google Sheets service failed to initialize, continuing...');
+                }
+                
+                await setupImageKit();
+                console.log('✅ ImageKit service initialized');
+                
+                const broadcast = (data) => console.log(JSON.stringify(data));
+                
+                await processVideoPipeline(
+                  '${{ github.event.inputs.file_id }}',
+                  '${{ github.event.inputs.file_name }}',
+                  broadcast
+                );
+                
+                console.log('Processing completed successfully');
+                process.exit(0);
+              } catch (error) {
+                console.error('Processing failed:', error);
+                process.exit(1);
+              }
+            }
+            
+            initializeAndProcess();
           "
         else
           # Automatic trigger - check for video files in commits
           node -e "
+            const { setupGoogleDrive } = require('./src/services/googleDrive');
+            const { setupGoogleSheets } = require('./src/services/googleSheets');
+            const { setupImageKit } = require('./src/services/imageKit');
             const { getGoogleDriveService } = require('./src/services/googleDrive');
             const { processVideoPipeline } = require('./src/processors/videoProcessor');
             
             async function processNewVideos() {
               try {
+                // Initialize all services first
+                await setupGoogleDrive();
+                console.log('✅ Google Drive service initialized');
+                
+                try {
+                  await setupGoogleSheets();
+                  console.log('✅ Google Sheets service initialized');
+                } catch (error) {
+                  console.log('⚠️ Google Sheets service failed to initialize, continuing...');
+                }
+                
+                await setupImageKit();
+                console.log('✅ ImageKit service initialized');
+                
                 const driveService = getGoogleDriveService();
                 const files = await driveService.listFiles();
                 
@@ -157,10 +198,15 @@ jobs:
     - name: Check for new videos
       run: |
         node -e "
-          const { getGoogleDriveService } = require('./src/services/googleDrive');
+          const { setupGoogleDrive } = require('./src/services/googleDrive');
           
           async function checkForNewVideos() {
             try {
+              // Initialize Google Drive service first
+              await setupGoogleDrive();
+              console.log('✅ Google Drive service initialized');
+              
+              const { getGoogleDriveService } = require('./src/services/googleDrive');
               const driveService = getGoogleDriveService();
               const files = await driveService.listFiles();
               
