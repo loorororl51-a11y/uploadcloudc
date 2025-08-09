@@ -81,8 +81,12 @@ jobs:
                   console.log('⚠️ Google Sheets service failed to initialize, continuing...');
                 }
                 
-                await setupImageKit();
-                console.log('✅ ImageKit service initialized');
+                try {
+                  await setupImageKit();
+                  console.log('✅ ImageKit service initialized');
+                } catch (error) {
+                  console.log('⚠️ ImageKit service failed to initialize, continuing...');
+                }
                 
                 const broadcast = (data) => console.log(JSON.stringify(data));
                 
@@ -124,8 +128,12 @@ jobs:
                   console.log('⚠️ Google Sheets service failed to initialize, continuing...');
                 }
                 
-                await setupImageKit();
-                console.log('✅ ImageKit service initialized');
+                try {
+                  await setupImageKit();
+                  console.log('✅ ImageKit service initialized');
+                } catch (error) {
+                  console.log('⚠️ ImageKit service failed to initialize, continuing...');
+                }
                 
                 const driveService = getGoogleDriveService();
                 const files = await driveService.listFiles();

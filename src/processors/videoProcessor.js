@@ -106,21 +106,30 @@ class VideoProcessor {
                 data: { fileId, status: 'Uploading to ImageKit...', progress: 80 }
             });
 
-            const imageKitService = getImageKitService();
-            
-            // Upload thumbnail
-            const thumbnailResult = await imageKitService.uploadImage(thumbnailPath, `thumb_${fileName}`);
-            processingData.thumbnailUrl = thumbnailResult.url;
+            try {
+                const imageKitService = getImageKitService();
+                
+                // Upload thumbnail
+                const thumbnailResult = await imageKitService.uploadImage(thumbnailPath, `thumb_${fileName}`);
+                processingData.thumbnailUrl = thumbnailResult.url;
 
-            // Upload video parts
-            const uploadPromises = videoParts.map((partPath, index) => {
-                const partName = videoParts.length > 1 ? `${fileName}_part${index + 1}` : fileName;
-                return imageKitService.uploadVideo(partPath, partName);
-            });
+                // Upload video parts
+                const uploadPromises = videoParts.map((partPath, index) => {
+                    const partName = videoParts.length > 1 ? `${fileName}_part${index + 1}` : fileName;
+                    return imageKitService.uploadVideo(partPath, partName);
+                });
 
-            const uploadResults = await Promise.all(uploadPromises);
-            processingData.partUrls = uploadResults.map(result => result.url);
-            processingData.videoUrl = uploadResults[0].url; // Main video URL
+                const uploadResults = await Promise.all(uploadPromises);
+                processingData.partUrls = uploadResults.map(result => result.url);
+                processingData.videoUrl = uploadResults[0].url; // Main video URL
+                
+                console.log('✅ Videos uploaded to ImageKit successfully');
+            } catch (imageKitError) {
+                console.log('⚠️ ImageKit upload failed, continuing without upload...');
+                processingData.thumbnailUrl = 'ImageKit not available';
+                processingData.videoUrl = 'ImageKit not available';
+                processingData.partUrls = ['ImageKit not available'];
+            }
 
             // Step 7: Save to Google Sheets
             broadcast({
