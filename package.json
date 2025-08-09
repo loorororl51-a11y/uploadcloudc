@@ -1,0 +1,43 @@
+{
+  "name": "video-processing-pipeline",
+  "version": "1.0.0",
+  "description": "Automated video processing pipeline with Google Drive, GitHub Actions, and ImageKit integration",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "process-video": "node src/processVideo.js",
+    "setup-webhook": "node src/setupWebhook.js",
+    "setup": "node setup.js"
+  },
+  "dependencies": {
+    "googleapis": "^128.0.0",
+    "google-auth-library": "^9.0.0",
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "imagekit": "^2.0.0",
+    "ws": "^8.14.2",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0",
+    "fs-extra": "^11.1.1",
+    "path": "^0.12.7",
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0"
+  },
+  "keywords": [
+    "video-processing",
+    "google-drive",
+    "github-actions",
+    "imagekit",
+    "automation"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+} 
