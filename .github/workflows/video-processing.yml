@@ -1,0 +1,53 @@
+name: Video Processing Workflow
+
+on:
+  repository_dispatch:
+    types: [video_processing]
+
+jobs:
+  process-video:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Create .env file
+      run: |
+        cp env.example .env
+        echo "GOOGLE_DRIVE_CLIENT_ID=${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}" >> .env
+        echo "GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}" >> .env
+        echo "GOOGLE_DRIVE_REDIRECT_URI=${{ secrets.GOOGLE_DRIVE_REDIRECT_URI }}" >> .env
+        echo "GOOGLE_DRIVE_REFRESH_TOKEN=${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}" >> .env
+        echo "GOOGLE_DRIVE_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}" >> .env
+        echo "GOOGLE_SHEETS_CLIENT_ID=${{ secrets.GOOGLE_SHEETS_CLIENT_ID }}" >> .env
+        echo "GOOGLE_SHEETS_CLIENT_SECRET=${{ secrets.GOOGLE_SHEETS_CLIENT_SECRET }}" >> .env
+        echo "GOOGLE_SHEETS_REDIRECT_URI=${{ secrets.GOOGLE_SHEETS_REDIRECT_URI }}" >> .env
+        echo "GOOGLE_SHEETS_REFRESH_TOKEN=${{ secrets.GOOGLE_SHEETS_REFRESH_TOKEN }}" >> .env
+        echo "GOOGLE_SHEETS_SPREADSHEET_ID=${{ secrets.GOOGLE_SHEETS_SPREADSHEET_ID }}" >> .env
+        echo "IMAGEKIT_PUBLIC_KEY=${{ secrets.IMAGEKIT_PUBLIC_KEY }}" >> .env
+        echo "IMAGEKIT_PRIVATE_KEY=${{ secrets.IMAGEKIT_PRIVATE_KEY }}" >> .env
+        echo "IMAGEKIT_URL_ENDPOINT=${{ secrets.IMAGEKIT_URL_ENDPOINT }}" >> .env
+        
+    - name: Process video
+      run: |
+        node scripts/process-video.js "${{ github.event.client_payload.file_id }}" "${{ github.event.client_payload.file_name }}"
+        
+    - name: Upload logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: processing-logs
+        path: |
+          temp/
+          uploads/
+        retention-days: 7
